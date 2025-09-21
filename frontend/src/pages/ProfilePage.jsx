@@ -34,20 +34,25 @@ const ProfilePage = () => {
       name: userData.name || 'Alex Johnson',
       email: userData.email || 'alex.johnson@example.com',
       bio: userData.bio || 'Passionate about sharing and community building',
-      creditPoints: userData.creditPoints || 420,
-      itemsLent: userData.itemsLent || 12,
-      itemsBorrowed: userData.itemsBorrowed || 8,
-      rating: 4.7,
-      totalRatings: 24,
-      joinDate: userData.joinDate || '2023-05-15T10:30:00Z',
-      location: userData.location || 'San Francisco, CA',
+      creditPoints: 10, 
+      itemsLent: 0, 
+      itemsBorrowed: 0, 
+      rating: 5.0, // Perfect 5.0 rating
+      totalRatings: 'company', // Changed from number to 'company'
+      joinDate: userData.joinDate || '2025-05-15T10:30:00Z',
+      location: userData.location || 'India',
       phone: userData.phone || '+1 (555) 123-4567',
       isCurrentUser: true, // This would be set based on the current user
-      isItemOwner: userData.itemsLent > 0, // User is an owner if they have items lent
+      isItemOwner: false, // Set to false since itemsLent is 0
       recentActivity: [
-        { id: 1, type: 'lend', item: 'Power Drill', to: 'Sarah', credits: 15, timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-        { id: 2, type: 'borrow', item: 'Camera Lens', from: 'Mike', credits: 10, timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-        { id: 3, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }
+        { id: 1, type: 'community_lend', member: 'Sarah Chen', item: 'DSLR Camera', credits: 25, timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
+        { id: 2, type: 'community_join', member: 'Mike Rodriguez', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+        { id: 3, type: 'community_lend', member: 'Emma Thompson', item: 'Power Drill', credits: 15, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+        { id: 4, type: 'community_borrow', member: 'James Wilson', item: 'Projector', from: 'Lisa Park', credits: 20, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
+        { id: 5, type: 'community_join', member: 'Priya Sharma', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
+        { id: 6, type: 'community_lend', member: 'David Kim', item: 'Bluetooth Speaker', credits: 10, timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
+        { id: 7, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
+        { id: 8, type: 'community_join', member: 'Anna Kowalski', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
       ]
     };
     
@@ -188,7 +193,7 @@ const ProfilePage = () => {
                 ))}
               </div>
               <div className="text-sm text-gray-300">{user.rating.toFixed(1)}/5.0</div>
-              <div className="text-xs text-gray-400 mt-1">from 24 reviews</div>
+              <div className="text-xs text-gray-400 mt-1">from {user.totalRatings}</div>
             </div>
           </div>
 
@@ -216,15 +221,21 @@ const ProfilePage = () => {
               <div key={activity.id} className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    activity.type === 'lend' ? 'bg-green-600' : 
-                    activity.type === 'borrow' ? 'bg-blue-600' : 'bg-purple-600'
+                    activity.type === 'lend' || activity.type === 'community_lend' ? 'bg-green-600' : 
+                    activity.type === 'borrow' || activity.type === 'community_borrow' ? 'bg-blue-600' : 
+                    activity.type === 'community_join' ? 'bg-yellow-600' : 'bg-purple-600'
                   }`}>
-                    {activity.type === 'lend' ? '✓' : activity.type === 'borrow' ? '📷' : '👤'}
+                    {activity.type === 'lend' || activity.type === 'community_lend' ? '📤' : 
+                     activity.type === 'borrow' || activity.type === 'community_borrow' ? '📥' : 
+                     activity.type === 'community_join' ? '🎉' : '👤'}
                   </div>
                   <div>
                     <p className="text-white font-medium">
                       {activity.type === 'lend' ? `Lent ${activity.item} to ${activity.to}` : 
                        activity.type === 'borrow' ? `Borrowed ${activity.item} from ${activity.from}` : 
+                       activity.type === 'community_lend' ? `${activity.member} lent ${activity.item}` :
+                       activity.type === 'community_borrow' ? `${activity.member} borrowed ${activity.item} from ${activity.from}` :
+                       activity.type === 'community_join' ? `${activity.member} joined ShareNet` :
                        `${activity.field} updated`}
                     </p>
                     <p className="text-gray-400 text-sm">
@@ -239,13 +250,16 @@ const ProfilePage = () => {
                 </div>
                 {activity.credits && (
                   <span className={`font-medium ${
-                    activity.type === 'lend' ? 'text-green-400' : 'text-blue-400'
+                    activity.type === 'lend' || activity.type === 'community_lend' ? 'text-green-400' : 'text-blue-400'
                   }`}>
-                    {activity.type === 'lend' ? '+' : '-'}{activity.credits} credits
+                    {activity.type === 'lend' || activity.type === 'community_lend' ? '+' : '-'}{activity.credits} credits
                   </span>
                 )}
-                {!activity.credits && (
+                {!activity.credits && activity.type !== 'community_join' && (
                   <span className="text-gray-400 font-medium">Updated</span>
+                )}
+                {activity.type === 'community_join' && (
+                  <span className="text-yellow-400 font-medium">New Member</span>
                 )}
               </div>
             ))}

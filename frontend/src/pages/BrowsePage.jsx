@@ -242,15 +242,16 @@ const BrowsePage = () => {
             />
           </div>
           <select
-            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
+            style={{ backgroundColor: '#374151', color: 'white' }}
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            <option value="All">All Categories</option>
+            <option value="All" style={{ backgroundColor: '#374151', color: 'white' }}>All Categories</option>
             {categories && categories.length > 0 && categories
               .filter(cat => cat !== 'All')
               .map(category => (
-                <option key={category} value={category}>{category}</option>
+                <option key={category} value={category} style={{ backgroundColor: '#374151', color: 'white' }}>{category}</option>
               ))
             }
           </select>

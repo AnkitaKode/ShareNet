@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import StarsBackground from '../components/StarsBackground';
 
 // Individual statistic card component
 const StatCard = ({ icon, value, label }) => (
@@ -22,22 +23,27 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
 
+  // ✅ Stats state (initial values: 0, 0, 10, 0)
+  const [itemsLent, setItemsLent] = useState(0);
+  const [itemsBorrowed, setItemsBorrowed] = useState(0);
+  const [credits, setCredits] = useState(10);
+  const [rating, setRating] = useState(0);
+
   useEffect(() => {
     // Get user data from localStorage
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     if (userData && userData.name) {
       setUserName(userData.name);
     } else {
-      // Fallback to a default name if no user data is found
       setUserName('User');
     }
   }, []);
 
-  // Data for the statistic cards
+  // ✅ Data for the statistic cards (uses state instead of hardcoded numbers)
   const statsData = [
-    { 
-      value: '23', 
-      label: 'Items Lent', 
+    {
+      value: itemsLent,
+      label: 'Items Lent',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -46,18 +52,18 @@ const Dashboard = () => {
         </svg>
       )
     },
-    { 
-      value: '15', 
-      label: 'Items Borrowed', 
+    {
+      value: itemsBorrowed,
+      label: 'Items Borrowed',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
         </svg>
       )
     },
-    { 
-      value: '245', 
-      label: 'Credits Earned', 
+    {
+      value: credits,
+      label: 'Credits Earned',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -65,9 +71,9 @@ const Dashboard = () => {
         </svg>
       )
     },
-    { 
-      value: '4.8', 
-      label: 'Community Rating', 
+    {
+      value: rating,
+      label: 'Community Rating',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -84,13 +90,13 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-white mb-2">
             Welcome back, {userName}! 👋
           </h1>
-          <p className="text-gray-300">Here's what's happening in your community today.</p>
+          <p className="text-gray-300">Here's what's happening in our community today.</p>
         </div>
-        
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => (
-            <StatCard 
+            <StatCard
               key={index}
               value={stat.value}
               label={stat.label}
@@ -103,7 +109,7 @@ const Dashboard = () => {
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
           <div className="flex flex-wrap gap-4">
-            <button 
+            <button
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 flex items-center gap-2"
               onClick={() => navigate('/add-item')}
             >
@@ -112,13 +118,13 @@ const Dashboard = () => {
               </svg>
               Add New Item
             </button>
-            <button 
+            <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => navigate('/browse')}
             >
               Browse Community
             </button>
-            <button 
+            <button
               className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => navigate('/profile')}
             >
@@ -131,6 +137,7 @@ const Dashboard = () => {
         <div className="bg-gray-800 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
           <div className="space-y-4">
+            {/* Example recent activity */}
             <div className="flex items-center justify-between py-3 border-b border-gray-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
@@ -139,7 +146,7 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Power Drill borrowed by Sarah</p>
+                  <p className="text-white font-medium">Power Drill borrowed by Ashika</p>
                   <p className="text-gray-400 text-sm">2 hours ago</p>
                 </div>
               </div>
@@ -167,12 +174,13 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Profile updated successfully</p>
-                  <p className="text-gray-400 text-sm">3 days ago</p>
+                  <p className="text-white font-medium">Joined successfully</p>
+                  <p className="text-gray-400 text-sm">Today</p>
                 </div>
               </div>
               <span className="text-gray-400 font-medium">Updated</span>
             </div>
+
           </div>
         </div>
       </div>
