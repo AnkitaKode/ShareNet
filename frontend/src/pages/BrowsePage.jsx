@@ -26,10 +26,15 @@ const ItemCard = ({ item, navigate }) => {
     console.log('Item clicked:', itemData);
     if (navigate) {
       console.log('Navigating to:', `/items/${itemData.id}`);
-      // Pass the complete item data to the detail page
+      // Pass the complete item data to the detail page with proper mapping
+      const itemForDetailPage = {
+        ...itemData,
+        title: itemData.name, // Map name to title for ItemDetailPage compatibility
+        price: itemData.pricePerDay // Map pricePerDay to price for ItemDetailPage compatibility
+      };
       navigate(`/items/${itemData.id}`, { 
         state: { 
-          item: itemData 
+          item: itemForDetailPage 
         } 
       });
       
@@ -242,16 +247,15 @@ const BrowsePage = () => {
             />
           </div>
           <select
-            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
-            style={{ backgroundColor: '#374151', color: 'white' }}
+            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            <option value="All" style={{ backgroundColor: '#374151', color: 'white' }}>All Categories</option>
+            <option value="All" className="bg-gray-800 text-white">All Categories</option>
             {categories && categories.length > 0 && categories
               .filter(cat => cat !== 'All')
               .map(category => (
-                <option key={category} value={category} style={{ backgroundColor: '#374151', color: 'white' }}>{category}</option>
+                <option key={category} value={category} className="bg-gray-800 text-white">{category}</option>
               ))
             }
           </select>

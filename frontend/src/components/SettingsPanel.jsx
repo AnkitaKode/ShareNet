@@ -128,15 +128,14 @@ const SettingsPanel = ({
               name="language"
               value={localSettings.language}
               onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block p-2.5"
-              style={{ backgroundColor: '#374151', color: 'white' }}
+              className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
             >
-              <option value="en" style={{ backgroundColor: '#374151', color: 'white' }}>English</option>
-              <option value="es" style={{ backgroundColor: '#374151', color: 'white' }}>Español</option>
-              <option value="fr" style={{ backgroundColor: '#374151', color: 'white' }}>Français</option>
-              <option value="de" style={{ backgroundColor: '#374151', color: 'white' }}>Deutsch</option>
-              <option value="zh" style={{ backgroundColor: '#374151', color: 'white' }}>中文</option>
-              <option value="ja" style={{ backgroundColor: '#374151', color: 'white' }}>日本語</option>
+              <option value="en" className="bg-gray-800 text-white">English</option>
+              <option value="es" className="bg-gray-800 text-white">Español</option>
+              <option value="fr" className="bg-gray-800 text-white">Français</option>
+              <option value="de" className="bg-gray-800 text-white">Deutsch</option>
+              <option value="zh" className="bg-gray-800 text-white">中文</option>
+              <option value="ja" className="bg-gray-800 text-white">日本語</option>
             </select>
           </div>
 

@@ -196,11 +196,10 @@ const AddItemPage = () => {
                   name="category"
                   value={itemData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  style={{ backgroundColor: '#374151', color: 'white' }}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="" style={{ backgroundColor: '#374151', color: 'white' }}>Select a category</option>
-                  {categories.map(cat => <option key={cat} value={cat} style={{ backgroundColor: '#374151', color: 'white' }}>{cat}</option>)}
+                  <option value="" className="bg-gray-800 text-white">Select a category</option>
+                  {categories.map(cat => <option key={cat} value={cat} className="bg-gray-800 text-white">{cat}</option>)}
                 </select>
               </div>
 
@@ -210,10 +209,9 @@ const AddItemPage = () => {
                   name="condition"
                   value={itemData.condition}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  style={{ backgroundColor: '#374151', color: 'white' }}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {conditions.map(cond => <option key={cond} value={cond} style={{ backgroundColor: '#374151', color: 'white' }}>{cond}</option>)}
+                  {conditions.map(cond => <option key={cond} value={cond} className="bg-gray-800 text-white">{cond}</option>)}
                 </select>
               </div>
             </div>

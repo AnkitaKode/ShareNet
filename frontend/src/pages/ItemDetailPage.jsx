@@ -59,10 +59,6 @@ export default function ItemDetailPage() {
     };
 
     fetchItemDetails();
-  }, [id]);
-
-  useEffect(() => {
-    fetchItemDetails();
     loadNotifications();
     
     // Set up polling for new notifications
