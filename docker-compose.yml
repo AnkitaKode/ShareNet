@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: sharenet-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ankita10
+      MYSQL_DATABASE: sharenet_db
+      MYSQL_USER: sharenet_user
+      MYSQL_PASSWORD: sharenet_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database_setup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - sharenet-network
+    restart: unless-stopped
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sharenet-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:mysql://mysql:3306/sharenet_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DATABASE_USERNAME: sharenet_user
+      DATABASE_PASSWORD: sharenet_password
+      ALLOWED_ORIGINS: http://localhost:3000,https://your-domain.com
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - sharenet-network
+    restart: unless-stopped
+
+  # Frontend Service (for development)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sharenet-frontend
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - sharenet-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  sharenet-network:
+    driver: bridge
