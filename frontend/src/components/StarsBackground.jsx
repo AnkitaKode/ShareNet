@@ -60,18 +60,26 @@ export default function StarsBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     
     // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate);
-      
-      particlesMesh.rotation.x += 0.0005;
-      particlesMesh.rotation.y += 0.0005;
-      
-      // Parallax effect with mouse movement
-      particlesMesh.rotation.x += mouseY * 0.0005;
-      particlesMesh.rotation.y += mouseX * 0.0005;
-      
-      renderer.render(scene, camera);
-    };
+// Inside animate()
+const animate = () => {
+  requestAnimationFrame(animate);
+
+  // Very slight rotation (slower than before)
+  particlesMesh.rotation.x += 0.00005;
+  particlesMesh.rotation.y += 0.00005;
+
+  // Gentle floating effect
+  const time = Date.now() * 0.00005;
+  particlesMesh.position.x = Math.sin(time) * 0.05; // subtle horizontal drift
+  particlesMesh.position.y = Math.cos(time) * 0.05; // subtle vertical drift
+
+  // Optional: light parallax with mouse (much smaller multiplier)
+  particlesMesh.rotation.x += mouseY * 0.00005;
+  particlesMesh.rotation.y += mouseX * 0.00005;
+
+  renderer.render(scene, camera);
+};
+
     
     // Handle window resize
     const handleResize = () => {

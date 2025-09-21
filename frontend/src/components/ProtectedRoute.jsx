@@ -6,31 +6,29 @@ const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Simulate an async auth check
+    // Check for valid authentication
     const checkAuth = async () => {
       try {
-        // Check for auth token or create a demo user
-        let token = localStorage.getItem('authToken');
-        let user = localStorage.getItem('user');
+        // Clean up any existing demo users/tokens
+        const token = localStorage.getItem('authToken');
+        const user = localStorage.getItem('user');
         
-        // If no auth token exists, create a demo session
-        if (!token) {
-          token = 'demo-auth-token';
-          localStorage.setItem('authToken', token);
+        // Remove demo authentication data
+        if (token === 'demo-auth-token' || 
+            (user && JSON.parse(user).email === 'demo@sharenet.com')) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('currentUser'); // Also clean up currentUser if it exists
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          return;
         }
         
-        // If no user exists, create a demo user
-        if (!user) {
-          const demoUser = {
-            id: 'demo-user',
-            name: 'Demo User',
-            email: 'demo@sharenet.com',
-            avatar: 'https://via.placeholder.com/100x100/4F46E5/FFFFFF?text=DU'
-          };
-          localStorage.setItem('user', JSON.stringify(demoUser));
-        }
+        // Both token and user must exist for authentication
+        // No auto-creation of demo users - users must login properly
+        const isValidAuth = token && user && token !== 'demo-auth-token';
         
-        setIsAuthenticated(!!token);
+        setIsAuthenticated(isValidAuth);
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);
