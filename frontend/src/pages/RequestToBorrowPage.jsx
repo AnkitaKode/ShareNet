@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { getItemById, requestToBorrow } from '../services/api';
+import StarsBackground from '../components/StarsBackground';
 
 const RequestToBorrowPage = () => {
   const { id } = useParams();
@@ -94,22 +95,25 @@ const RequestToBorrowPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="animate-pulse">Loading item details...</div>
+      <div className="min-h-screen relative bg-gray-900 text-white flex items-center justify-center">
+        <StarsBackground />
+        <div className="relative z-10 animate-pulse">Loading item details...</div>
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div>Item not found</div>
+      <div className="min-h-screen relative bg-gray-900 text-white flex items-center justify-center">
+        <StarsBackground />
+        <div className="relative z-10">Item not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen relative bg-gray-900 text-white p-4">
+      <StarsBackground />
       <div className="max-w-3xl mx-auto">
         <button 
           onClick={() => navigate(-1)}

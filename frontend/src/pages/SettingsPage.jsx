@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import StarsBackground from '../components/StarsBackground';
 
 // --- Default settings structure ---
 const defaultSettings = {
@@ -58,7 +59,8 @@ export default function SettingsPage() {
   if (loading) return <div className="p-6">Loading settings...</div>;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen relative bg-gray-50">
+      <StarsBackground />
       {/* Assuming Sidebar and Header are part of your main layout */}
       <main className="flex-1 p-6">
         <div className="max-w-4xl mx-auto space-y-8">

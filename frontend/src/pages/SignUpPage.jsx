@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { endpoints } from '../api/api';
+import StarsBackground from '../components/StarsBackground';
 
 const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
@@ -59,7 +60,9 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4">
+    <div className="relative min-h-screen">
+      <StarsBackground />
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] py-12 px-4">
       <motion.div 
         className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl"
         initial={{ opacity: 0, y: 20 }}
@@ -169,6 +172,7 @@ const SignUpPage = () => {
           </p>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/Tabs";
 import { toast } from 'sonner';
+import StarsBackground from '../components/StarsBackground';
 
 // A helper function to determine the badge color based on status
 const getStatusBadgeVariant = (status) => {
@@ -104,7 +105,8 @@ export default function TransactionsPage() {
   const lentItems = transactions.filter(t => t.owner.id === currentUserId);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen relative bg-gray-50">
+      <StarsBackground />
       {/* Assuming Sidebar and Header are part of your main layout */}
       {/* <Sidebar /> */}
       {/* <Header /> */}
