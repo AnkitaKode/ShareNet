@@ -68,25 +68,278 @@ const CreditPurchase = () => {
 
   const handlePurchase = async (pkg) => {
     setIsProcessing(true);
+    setSelectedPackage(pkg);
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Show payment options modal
+      const paymentMethod = await showPaymentOptions(pkg);
       
-      // Update credits locally (in real app, this would come from API)
-      setCurrentCredits(prev => prev + pkg.credits);
-      
-      // Update localStorage
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      user.creditPoints = currentCredits + pkg.credits;
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      toast.success(`Successfully purchased ${pkg.credits} credits for ₹${pkg.price}!`);
-      setSelectedPackage(null);
+      if (paymentMethod) {
+        // Redirect to selected payment app
+        redirectToPaymentApp(paymentMethod, pkg);
+      } else {
+        setIsProcessing(false);
+        setSelectedPackage(null);
+      }
     } catch (error) {
-      toast.error('Purchase failed. Please try again.');
-    } finally {
+      toast.error('Payment initialization failed. Please try again.');
       setIsProcessing(false);
+      setSelectedPackage(null);
     }
+  };
+
+  const showPaymentOptions = (pkg) => {
+    return new Promise((resolve) => {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+      
+      modal.innerHTML = `
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 max-w-md w-full">
+          <h3 class="text-xl font-bold text-white mb-4">Choose Payment Method</h3>
+          <p class="text-gray-300 mb-6">Pay ₹${pkg.price} for ${pkg.credits} credits</p>
+          
+          <div class="space-y-3">
+            <button class="payment-btn w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-3 transition-colors" data-method="paytm">
+              <div class="w-8 h-8 bg-white rounded flex items-center justify-center">
+                <span class="text-blue-600 font-bold text-sm">P</span>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold">Paytm</div>
+                <div class="text-sm opacity-75">UPI, Cards, Wallet</div>
+              </div>
+            </button>
+            
+            <button class="payment-btn w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-3 transition-colors" data-method="phonepe">
+              <div class="w-8 h-8 bg-white rounded flex items-center justify-center">
+                <span class="text-green-600 font-bold text-sm">₹</span>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold">PhonePe</div>
+                <div class="text-sm opacity-75">UPI Payment</div>
+              </div>
+            </button>
+            
+            <button class="payment-btn w-full p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-3 transition-colors" data-method="gpay">
+              <div class="w-8 h-8 bg-white rounded flex items-center justify-center">
+                <span class="text-purple-600 font-bold text-sm">G</span>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold">Google Pay</div>
+                <div class="text-sm opacity-75">UPI Payment</div>
+              </div>
+            </button>
+            
+            <button class="payment-btn w-full p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-3 transition-colors" data-method="razorpay">
+              <div class="w-8 h-8 bg-white rounded flex items-center justify-center">
+                <span class="text-orange-600 font-bold text-sm">R</span>
+              </div>
+              <div class="text-left">
+                <div class="font-semibold">Razorpay</div>
+                <div class="text-sm opacity-75">Cards, UPI, Netbanking</div>
+              </div>
+            </button>
+          </div>
+          
+          <button class="cancel-btn w-full mt-4 p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+            Cancel
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add event listeners
+      modal.querySelectorAll('.payment-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const method = btn.getAttribute('data-method');
+          document.body.removeChild(modal);
+          resolve(method);
+        });
+      });
+      
+      modal.querySelector('.cancel-btn').addEventListener('click', () => {
+        document.body.removeChild(modal);
+        resolve(null);
+      });
+      
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+          resolve(null);
+        }
+      });
+    });
+  };
+
+  const redirectToPaymentApp = (paymentMethod, pkg) => {
+    const amount = pkg.price;
+    const description = `ShareNet Credits - ${pkg.credits} credits`;
+    const merchantId = 'SHARENET001'; // Your merchant ID
+    const orderId = `ORDER_${Date.now()}`;
+    
+    // Store purchase details for return handling
+    localStorage.setItem('pendingPurchase', JSON.stringify({
+      packageId: pkg.id,
+      credits: pkg.credits,
+      amount: amount,
+      orderId: orderId,
+      timestamp: Date.now()
+    }));
+    
+    let paymentUrl = '';
+    
+    switch (paymentMethod) {
+      case 'paytm':
+        // Paytm payment URL (you'll need to integrate with Paytm's actual API)
+        paymentUrl = `https://securegw.paytm.in/theia/processTransaction?MID=${merchantId}&ORDER_ID=${orderId}&TXN_AMOUNT=${amount}&CUST_ID=CUST001&INDUSTRY_TYPE_ID=Retail&CHANNEL_ID=WEB&WEBSITE=WEBSTAGING`;
+        break;
+        
+      case 'phonepe':
+        // PhonePe UPI deep link
+        const upiId = 'sharenet@paytm'; // Your UPI ID
+        paymentUrl = `phonepe://pay?pa=${upiId}&pn=ShareNet&am=${amount}&cu=INR&tn=${encodeURIComponent(description)}`;
+        break;
+        
+      case 'gpay':
+        // Google Pay UPI deep link
+        const gpayUpiId = 'sharenet@paytm'; // Your UPI ID
+        paymentUrl = `tez://upi/pay?pa=${gpayUpiId}&pn=ShareNet&am=${amount}&cu=INR&tn=${encodeURIComponent(description)}`;
+        break;
+        
+      case 'razorpay':
+        // Razorpay checkout (you'll need to integrate with Razorpay's actual API)
+        initializeRazorpay(pkg);
+        return;
+        
+      default:
+        toast.error('Payment method not supported');
+        setIsProcessing(false);
+        setSelectedPackage(null);
+        return;
+    }
+    
+    // Try to open the payment app
+    const paymentWindow = window.open(paymentUrl, '_blank');
+    
+    // Fallback for mobile apps that might not open in browser
+    if (!paymentWindow || paymentWindow.closed) {
+      // If app doesn't open, show UPI QR code or manual payment instructions
+      showManualPaymentInstructions(paymentMethod, pkg);
+    } else {
+      // Monitor for payment completion (in real app, you'd use webhooks)
+      setTimeout(() => {
+        checkPaymentStatus(orderId, pkg);
+      }, 5000);
+    }
+  };
+
+  const initializeRazorpay = (pkg) => {
+    // Razorpay integration (you'll need to include Razorpay script)
+    const options = {
+      key: 'rzp_test_1234567890', // Your Razorpay key
+      amount: pkg.price * 100, // Amount in paise
+      currency: 'INR',
+      name: 'ShareNet',
+      description: `${pkg.credits} Credits Purchase`,
+      order_id: `order_${Date.now()}`,
+      handler: function (response) {
+        // Payment successful
+        handlePaymentSuccess(pkg, response.razorpay_payment_id);
+      },
+      prefill: {
+        name: 'User Name',
+        email: 'user@example.com',
+        contact: '9999999999'
+      },
+      theme: {
+        color: '#3B82F6'
+      },
+      modal: {
+        ondismiss: function() {
+          setIsProcessing(false);
+          setSelectedPackage(null);
+        }
+      }
+    };
+    
+    // Note: In a real app, you'd load Razorpay script dynamically
+    // For now, we'll show a message
+    toast.success('Redirecting to Razorpay... (Integration pending)');
+    setTimeout(() => {
+      handlePaymentSuccess(pkg, 'razorpay_demo_' + Date.now());
+    }, 2000);
+  };
+
+  const showManualPaymentInstructions = (paymentMethod, pkg) => {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+      <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 max-w-md w-full">
+        <h3 class="text-xl font-bold text-white mb-4">Manual Payment</h3>
+        <p class="text-gray-300 mb-4">Pay ₹${pkg.price} using your ${paymentMethod.toUpperCase()} app</p>
+        
+        <div class="bg-white/5 rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-300 mb-2">UPI ID: <span class="text-white font-mono">sharenet@paytm</span></p>
+          <p class="text-sm text-gray-300 mb-2">Amount: <span class="text-white">₹${pkg.price}</span></p>
+          <p class="text-sm text-gray-300">Note: <span class="text-white">${pkg.credits} ShareNet Credits</span></p>
+        </div>
+        
+        <p class="text-xs text-gray-400 mb-4">After payment, your credits will be added automatically within 5 minutes.</p>
+        
+        <div class="flex gap-3">
+          <button class="confirm-btn flex-1 p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+            I've Paid
+          </button>
+          <button class="cancel-btn flex-1 p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('.confirm-btn').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      handlePaymentSuccess(pkg, 'manual_' + Date.now());
+    });
+    
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      setIsProcessing(false);
+      setSelectedPackage(null);
+    });
+  };
+
+  const checkPaymentStatus = (orderId, pkg) => {
+    // In a real app, you'd check payment status via API
+    // For demo, we'll simulate successful payment
+    const pendingPurchase = JSON.parse(localStorage.getItem('pendingPurchase') || '{}');
+    if (pendingPurchase.orderId === orderId) {
+      handlePaymentSuccess(pkg, orderId);
+    }
+  };
+
+  const handlePaymentSuccess = (pkg, transactionId) => {
+    // Update credits
+    setCurrentCredits(prev => prev + pkg.credits);
+    
+    // Update localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    user.creditPoints = (user.creditPoints || 0) + pkg.credits;
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    // Clear pending purchase
+    localStorage.removeItem('pendingPurchase');
+    
+    // Show success message
+    toast.success(`Payment successful! ${pkg.credits} credits added to your account.`);
+    
+    // Reset states
+    setIsProcessing(false);
+    setSelectedPackage(null);
   };
 
   return (
