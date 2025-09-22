@@ -169,7 +169,7 @@ const ProfilePage = () => {
             <div className="bg-white/5 rounded-lg p-4 text-center hover:bg-white/10 transition-colors">
               <div className="text-3xl font-bold text-blue-400">{user.creditPoints}</div>
               <div className="text-sm text-gray-300">Available Credits</div>
-              <div className="text-xs text-gray-400 mt-1">≈ ${(user.creditPoints * 0.1).toFixed(2)} USD</div>
+              <div className="text-xs text-gray-400 mt-1">≈ ₹{(user.creditPoints * 8.5).toFixed(2)} INR</div>
             </div>
             <div className="bg-white/5 rounded-lg p-4 text-center hover:bg-white/10 transition-colors">
               <div className="text-3xl font-bold text-green-400">{user.itemsLent}</div>

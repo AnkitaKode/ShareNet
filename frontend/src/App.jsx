@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Toaster } from 'sonner';
 
 // Lazy load components for better performance
 // Note: ProtectedRoute is not lazy-loaded to avoid potential hydration issues
@@ -14,6 +15,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignUpPage = lazy(() => import('./pages/SignUpPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const BrowsePage = lazy(() => import('./pages/BrowsePage'));
+const TransactionsPage = lazy(() => import('./pages/TransactionsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
 const AddItemPage = lazy(() => import('./pages/AddItemPage'));
@@ -101,6 +103,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" />
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Public Routes */}
@@ -150,6 +153,20 @@ function App() {
                 transition={{ duration: 0.3 }}
               >
                 <BrowsePage />
+              </motion.div>
+            </ProtectedLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/transactions" element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <TransactionsPage />
               </motion.div>
             </ProtectedLayout>
           </ProtectedRoute>

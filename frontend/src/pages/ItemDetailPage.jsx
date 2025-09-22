@@ -399,7 +399,7 @@ export default function ItemDetailPage() {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/10">
                   <span className="text-gray-300">Daily Rate:</span>
-                  <span className="text-blue-400 font-bold text-xl">₹{item.price}</span>
+                  <span className="text-blue-400 font-bold text-xl">₹{(item.price * 8.5).toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/10">
                   <span className="text-gray-300">Location:</span>

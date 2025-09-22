@@ -104,7 +104,7 @@ const ItemCard = ({ item, navigate }) => {
         </div>
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-blue-400 font-bold text-xl">${itemData.pricePerDay}</p>
+            <p className="text-blue-400 font-bold text-xl">₹{(itemData.pricePerDay * 8.5).toFixed(0)}</p>
             <p className="text-gray-400 text-xs">per day</p>
           </div>
           <div className="text-right">
