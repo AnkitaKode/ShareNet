@@ -8,6 +8,7 @@ import { Toaster } from 'sonner';
 
 const RequestToBorrowPage = lazy(() => import('./pages/RequestToBorrowPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const DataMigrationPage = lazy(() => import('./pages/DataMigrationPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 const AppLayout = lazy(() => import('./components/AppLayout'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -217,6 +218,13 @@ function App() {
           <ProtectedRoute>
             <ProtectedLayout>
               <ChatPage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/migrate-data" element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <DataMigrationPage />
             </ProtectedLayout>
           </ProtectedRoute>
         } />
