@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import StarsBackground from '../components/StarsBackground';
 
 const ItemCard = ({ item, navigate }) => {
@@ -213,8 +214,19 @@ const BrowsePage = () => {
       loadItems();
     };
     
+    const handleItemAdded = (event) => {
+      console.log('New item added:', event.detail);
+      loadItems(); // Refresh the items list
+      toast.success(`New item "${event.detail.item.name}" is now available for all users!`);
+    };
+    
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('itemAdded', handleItemAdded);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('itemAdded', handleItemAdded);
+    };
   }, []);
 
   // Get unique categories from actual items

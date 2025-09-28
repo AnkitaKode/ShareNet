@@ -329,10 +329,38 @@ const CreditPurchase = () => {
     // Update localStorage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     user.creditPoints = (user.creditPoints || 0) + pkg.credits;
+    
+    // Add purchase to recent activity
+    const purchaseActivity = {
+      id: Date.now(),
+      type: 'credit_purchase',
+      credits: pkg.credits,
+      amount: pkg.price,
+      transactionId: transactionId,
+      timestamp: new Date().toISOString()
+    };
+    
+    if (!user.recentActivity) {
+      user.recentActivity = [];
+    }
+    user.recentActivity.unshift(purchaseActivity); // Add to beginning
+    
+    // Keep only last 10 activities
+    user.recentActivity = user.recentActivity.slice(0, 10);
+    
     localStorage.setItem('user', JSON.stringify(user));
     
     // Clear pending purchase
     localStorage.removeItem('pendingPurchase');
+    
+    // Trigger custom event to notify other components (like ProfilePage)
+    window.dispatchEvent(new CustomEvent('creditsUpdated', { 
+      detail: { 
+        newCredits: user.creditPoints, 
+        addedCredits: pkg.credits,
+        transactionId: transactionId
+      } 
+    }));
     
     // Show success message
     toast.success(`Payment successful! ${pkg.credits} credits added to your account.`);

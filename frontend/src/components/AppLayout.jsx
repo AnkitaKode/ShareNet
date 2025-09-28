@@ -122,8 +122,9 @@ const AppLayout = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard', icon: 'home' },
     { name: 'Browse', href: '/browse', icon: 'search' },
     { name: 'Transactions', href: '/transactions', icon: 'credit-card' },
-    { name: 'Add Item', href: '/add-item', icon: 'plus-circle' },
+    { name: 'Add Item', href: '/add-item', icon: 'plus' },
     { name: 'Profile', href: '/profile', icon: 'user' },
+    { name: 'Migrate Data', href: '/migrate-data', icon: 'database' },
   ];
 
   const handleLogout = () => {
@@ -353,6 +354,11 @@ const IconComponent = ({ name }) => {
     'credit-card': (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+    ),
+    database: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
       </svg>
     )
   };

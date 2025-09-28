@@ -109,6 +109,9 @@ const AddItemPage = () => {
     setUploading(true);
 
     try {
+      // Get current user info
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      
       // Simulate backend by storing in localStorage
       const existingItems = JSON.parse(localStorage.getItem('shareNetItems') || '[]');
       const newItem = {
@@ -117,13 +120,22 @@ const AddItemPage = () => {
         pricePerDay: parseInt(itemData.pricePerDay) || 0,
         imageUrl: imagePreview,
         available: true,
-        owner: 'Current User',
+        owner: currentUser.name || 'Current User',
+        ownerId: currentUser.id || 'current_user',
         rating: 5.0,
         createdAt: new Date().toISOString()
       };
 
       existingItems.push(newItem);
       localStorage.setItem('shareNetItems', JSON.stringify(existingItems));
+
+      // Trigger custom event to notify other components
+      window.dispatchEvent(new CustomEvent('itemAdded', { 
+        detail: { 
+          item: newItem,
+          totalItems: existingItems.length
+        } 
+      }));
 
       setSuccess(true);
     } catch (err) {
@@ -143,7 +155,8 @@ const AddItemPage = () => {
             <span className="text-white text-2xl">✓</span>
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Item Added Successfully!</h2>
-          <p className="text-gray-300">Redirecting to browse page...</p>
+          <p className="text-gray-300 mb-2">Your item is now visible to all users on the app!</p>
+          <p className="text-gray-400 text-sm">Redirecting to browse page...</p>
         </div>
       </div>
     );

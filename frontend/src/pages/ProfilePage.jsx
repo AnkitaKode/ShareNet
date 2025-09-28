@@ -23,40 +23,64 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    // Get user data from localStorage or API
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    // In a real app, this would be an API call to get the user's profile
-    // For now, we'll use mock data with the actual user data from localStorage
-    const userProfile = {
-      ...userData,
-      name: userData.name || 'Alex Johnson',
-      email: userData.email || 'alex.johnson@example.com',
-      bio: userData.bio || 'Passionate about sharing and community building',
-      creditPoints: 10, 
-      itemsLent: 0, 
-      itemsBorrowed: 0, 
-      rating: 5.0, // Perfect 5.0 rating
-      totalRatings: 'company', // Changed from number to 'company'
-      joinDate: userData.joinDate || '2025-05-15T10:30:00Z',
-      location: userData.location || 'India',
-      phone: userData.phone || '+1 (555) 123-4567',
-      isCurrentUser: true, // This would be set based on the current user
-      isItemOwner: false, // Set to false since itemsLent is 0
-      recentActivity: [
-        { id: 1, type: 'community_lend', member: 'Sarah Chen', item: 'DSLR Camera', credits: 25, timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
-        { id: 2, type: 'community_join', member: 'Mike Rodriguez', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-        { id: 3, type: 'community_lend', member: 'Emma Thompson', item: 'Power Drill', credits: 15, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
-        { id: 4, type: 'community_borrow', member: 'James Wilson', item: 'Projector', from: 'Lisa Park', credits: 20, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
-        { id: 5, type: 'community_join', member: 'Priya Sharma', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
-        { id: 6, type: 'community_lend', member: 'David Kim', item: 'Bluetooth Speaker', credits: 10, timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
-        { id: 7, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-        { id: 8, type: 'community_join', member: 'Anna Kowalski', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
-      ]
+    const loadUserProfile = () => {
+      // Get user data from localStorage
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // In a real app, this would be an API call to get the user's profile
+      // For now, we'll use mock data with the actual user data from localStorage
+      const userProfile = {
+        ...userData,
+        name: userData.name || 'Alex Johnson',
+        email: userData.email || 'alex.johnson@example.com',
+        bio: userData.bio || 'Passionate about sharing and community building',
+        creditPoints: userData.creditPoints || 10, // Use actual credit points from localStorage
+        itemsLent: userData.itemsLent || 0, 
+        itemsBorrowed: userData.itemsBorrowed || 0, 
+        rating: userData.rating || 5.0,
+        totalRatings: userData.totalRatings || 'company',
+        joinDate: userData.joinDate || '2025-05-15T10:30:00Z',
+        location: userData.location || 'India',
+        phone: userData.phone || '+1 (555) 123-4567',
+        isCurrentUser: true,
+        isItemOwner: (userData.itemsLent || 0) > 0,
+        recentActivity: userData.recentActivity || [
+          { id: 1, type: 'community_lend', member: 'Sarah Chen', item: 'DSLR Camera', credits: 25, timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
+          { id: 2, type: 'community_join', member: 'Mike Rodriguez', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+          { id: 3, type: 'community_lend', member: 'Emma Thompson', item: 'Power Drill', credits: 15, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+          { id: 4, type: 'community_borrow', member: 'James Wilson', item: 'Projector', from: 'Lisa Park', credits: 20, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
+          { id: 5, type: 'community_join', member: 'Priya Sharma', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
+          { id: 6, type: 'community_lend', member: 'David Kim', item: 'Bluetooth Speaker', credits: 10, timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
+          { id: 7, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
+          { id: 8, type: 'community_join', member: 'Anna Kowalski', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
+        ]
+      };
+      
+      setUser(userProfile);
     };
-    
-    setUser(userProfile);
+
+    // Load profile initially
+    loadUserProfile();
+
+    // Listen for storage changes (when credits are updated from other tabs/components)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user') {
+        loadUserProfile();
+      }
+    };
+
+    // Listen for custom events (when credits are updated in the same tab)
+    const handleCreditUpdate = () => {
+      loadUserProfile();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('creditsUpdated', handleCreditUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('creditsUpdated', handleCreditUpdate);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -223,11 +247,13 @@ const ProfilePage = () => {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     activity.type === 'lend' || activity.type === 'community_lend' ? 'bg-green-600' : 
                     activity.type === 'borrow' || activity.type === 'community_borrow' ? 'bg-blue-600' : 
-                    activity.type === 'community_join' ? 'bg-yellow-600' : 'bg-purple-600'
+                    activity.type === 'community_join' ? 'bg-yellow-600' : 
+                    activity.type === 'credit_purchase' ? 'bg-emerald-600' : 'bg-purple-600'
                   }`}>
                     {activity.type === 'lend' || activity.type === 'community_lend' ? '📤' : 
                      activity.type === 'borrow' || activity.type === 'community_borrow' ? '📥' : 
-                     activity.type === 'community_join' ? '🎉' : '👤'}
+                     activity.type === 'community_join' ? '🎉' : 
+                     activity.type === 'credit_purchase' ? '💳' : '👤'}
                   </div>
                   <div>
                     <p className="text-white font-medium">
@@ -236,6 +262,7 @@ const ProfilePage = () => {
                        activity.type === 'community_lend' ? `${activity.member} lent ${activity.item}` :
                        activity.type === 'community_borrow' ? `${activity.member} borrowed ${activity.item} from ${activity.from}` :
                        activity.type === 'community_join' ? `${activity.member} joined ShareNet` :
+                       activity.type === 'credit_purchase' ? `Purchased ${activity.credits} credits for ₹${activity.amount}` :
                        `${activity.field} updated`}
                     </p>
                     <p className="text-gray-400 text-sm">
@@ -250,16 +277,20 @@ const ProfilePage = () => {
                 </div>
                 {activity.credits && (
                   <span className={`font-medium ${
-                    activity.type === 'lend' || activity.type === 'community_lend' ? 'text-green-400' : 'text-blue-400'
+                    activity.type === 'lend' || activity.type === 'community_lend' ? 'text-green-400' : 
+                    activity.type === 'credit_purchase' ? 'text-emerald-400' : 'text-blue-400'
                   }`}>
-                    {activity.type === 'lend' || activity.type === 'community_lend' ? '+' : '-'}{activity.credits} credits
+                    {activity.type === 'lend' || activity.type === 'community_lend' || activity.type === 'credit_purchase' ? '+' : '-'}{activity.credits} credits
                   </span>
                 )}
-                {!activity.credits && activity.type !== 'community_join' && (
+                {!activity.credits && activity.type !== 'community_join' && activity.type !== 'credit_purchase' && (
                   <span className="text-gray-400 font-medium">Updated</span>
                 )}
                 {activity.type === 'community_join' && (
                   <span className="text-yellow-400 font-medium">New Member</span>
+                )}
+                {activity.type === 'credit_purchase' && activity.amount && (
+                  <span className="text-emerald-400 font-medium">₹{activity.amount}</span>
                 )}
               </div>
             ))}
