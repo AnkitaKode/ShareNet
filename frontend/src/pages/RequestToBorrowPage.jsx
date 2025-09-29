@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '../contexts/AuthContext';
 import { getItemById, requestToBorrow } from '../services/api';
 import StarsBackground from '../components/StarsBackground';
 
 const RequestToBorrowPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const [item, setItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,13 +64,16 @@ const RequestToBorrowPage = () => {
     try {
       setIsSubmitting(true);
       
+      // Get current user from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
       // Send request to backend
       await requestToBorrow({
         itemId: id,
         startDate: formData.startDate,
         endDate: formData.endDate,
         message: formData.message,
-        borrowerId: currentUser.uid,
+        borrowerId: user.id || user.uid,
         ownerId: item.ownerId
       });
 
