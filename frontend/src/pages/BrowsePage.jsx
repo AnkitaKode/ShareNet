@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import StarsBackground from '../components/StarsBackground';
+import { endpoints } from '../api/api';
 
 const ItemCard = ({ item, navigate }) => {
   // Ensure the item has all required properties
@@ -16,7 +17,7 @@ const ItemCard = ({ item, navigate }) => {
     imageUrl: item.imageUrl || 'https://via.placeholder.com/300x200/6B7280/FFFFFF?text=No+Image',
     owner: item.owner || 'Unknown',
     rating: item.rating || 0,
-    available: item.available !== undefined ? item.available : true,
+    available: (item.available !== undefined ? item.available : undefined) ?? (item.isAvailable !== undefined ? item.isAvailable : true),
     ownerId: item.ownerId || 'unknown',
     createdAt: item.createdAt || new Date().toISOString()
   };
@@ -77,11 +78,11 @@ const ItemCard = ({ item, navigate }) => {
           }}
         />
         <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium ${
-          item.available 
+          itemData.available 
             ? 'bg-green-500/90 text-white' 
             : 'bg-red-500/90 text-white'
         }`}>
-          {item.available ? 'Available' : 'Borrowed'}
+          {itemData.available ? 'Available' : 'Borrowed'}
         </span>
       </div>
       <div className="space-y-3">
@@ -136,97 +137,32 @@ const BrowsePage = () => {
   });
   const [uploadPreview, setUploadPreview] = useState(null);
 
-  // Load items from localStorage database
+  // Load items from backend database
   useEffect(() => {
     const loadItems = async () => {
       try {
         setLoading(true);
-        let storedItems = JSON.parse(localStorage.getItem('shareNetItems') || '[]');
-        
-        // If no items exist, create some sample data
-        if (storedItems.length === 0) {
-          const sampleItems = [
-            {
-              id: 1,
-              name: 'Power Drill',
-              description: 'Professional grade power drill with various bits included',
-              category: 'Tools',
-              condition: 'Excellent',
-              pricePerDay: 15,
-              location: 'Downtown',
-              imageUrl: 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Power+Drill',
-              owner: 'John Smith',
-              rating: 4.8,
-              available: true,
-              ownerId: 'user1',
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 2,
-              name: 'Camera Lens',
-              description: '50mm f/1.8 lens perfect for portraits',
-              category: 'Electronics',
-              condition: 'Good',
-              pricePerDay: 25,
-              location: 'Uptown',
-              imageUrl: 'https://via.placeholder.com/300x200/059669/FFFFFF?text=Camera+Lens',
-              owner: 'Sarah Johnson',
-              rating: 4.9,
-              available: true,
-              ownerId: 'user2',
-              createdAt: new Date(Date.now() - 86400000).toISOString()
-            },
-            {
-              id: 3,
-              name: 'Camping Tent',
-              description: '4-person waterproof camping tent',
-              category: 'Outdoor',
-              condition: 'Good',
-              pricePerDay: 20,
-              location: 'Suburbs',
-              imageUrl: 'https://via.placeholder.com/300x200/DC2626/FFFFFF?text=Camping+Tent',
-              owner: 'Mike Wilson',
-              rating: 4.5,
-              available: true,
-              ownerId: 'user3',
-              createdAt: new Date(Date.now() - 172800000).toISOString()
-            }
-          ];
-          
-          localStorage.setItem('shareNetItems', JSON.stringify(sampleItems));
-          storedItems = sampleItems;
-        }
-        
-        const sortedItems = storedItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const response = await endpoints.items.getAll();
+        const data = Array.isArray(response?.data) ? response.data : [];
+        const sortedItems = data.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         setItems(sortedItems);
-        console.log(`Loaded ${sortedItems.length} items from database`);
+        console.log(`Loaded ${sortedItems.length} items from backend`);
       } catch (error) {
-        console.error('Error loading items from database:', error);
+        console.error('Error loading items from backend:', error);
         setItems([]);
+        toast.error('Failed to load items');
       } finally {
         setLoading(false);
       }
     };
 
     loadItems();
-    
-    const handleStorageChange = () => {
+
+    const handleItemAdded = () => {
       loadItems();
     };
-    
-    const handleItemAdded = (event) => {
-      console.log('New item added:', event.detail);
-      loadItems(); // Refresh the items list
-      toast.success(`New item "${event.detail.item.name}" is now available for all users!`);
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('itemAdded', handleItemAdded);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('itemAdded', handleItemAdded);
-    };
+    return () => window.removeEventListener('itemAdded', handleItemAdded);
   }, []);
 
   // Get unique categories from actual items

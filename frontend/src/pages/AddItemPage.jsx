@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import StarsBackground from '../components/StarsBackground';
+import { endpoints } from '../api/api';
 
 const AddItemPage = () => {
   const navigate = useNavigate();
@@ -109,35 +110,36 @@ const AddItemPage = () => {
     setUploading(true);
 
     try {
-      // Get current user info
+      // Get current user info (optional for backend)
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      // Simulate backend by storing in localStorage
-      const existingItems = JSON.parse(localStorage.getItem('shareNetItems') || '[]');
-      const newItem = {
-        id: Date.now(),
-        ...itemData,
-        pricePerDay: parseInt(itemData.pricePerDay) || 0,
+
+      // Prepare payload matching backend Item model
+      const payload = {
+        name: itemData.name,
+        description: itemData.description,
+        pricePerDay: parseFloat(itemData.pricePerDay) || 0,
         imageUrl: imagePreview,
-        available: true,
-        owner: currentUser.name || 'Current User',
-        ownerId: currentUser.id || 'current_user',
-        rating: 5.0,
-        createdAt: new Date().toISOString()
+        isAvailable: true,
+        availableUntil: null,
+        latitude: 0,
+        longitude: 0,
+        // ownerId: currentUser.id, // uncomment if backend expects owner relation
       };
 
-      existingItems.push(newItem);
-      localStorage.setItem('shareNetItems', JSON.stringify(existingItems));
+      const response = await endpoints.items.create(payload);
 
-      // Trigger custom event to notify other components
-      window.dispatchEvent(new CustomEvent('itemAdded', { 
-        detail: { 
-          item: newItem,
-          totalItems: existingItems.length
-        } 
-      }));
-
-      setSuccess(true);
+      if (response?.data?.success) {
+        // Notify other tabs/components to refresh lists
+        window.dispatchEvent(new CustomEvent('itemAdded', {
+          detail: {
+            item: response.data.item,
+            totalItems: undefined,
+          }
+        }));
+        setSuccess(true);
+      } else {
+        throw new Error(response?.data?.message || 'Failed to upload item');
+      }
     } catch (err) {
       console.error('Error adding item:', err);
       setError('Failed to add item. Please try again.');

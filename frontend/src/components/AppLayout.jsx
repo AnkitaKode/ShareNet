@@ -124,7 +124,6 @@ const AppLayout = ({ children }) => {
     { name: 'Transactions', href: '/transactions', icon: 'credit-card' },
     { name: 'Add Item', href: '/add-item', icon: 'plus' },
     { name: 'Profile', href: '/profile', icon: 'user' },
-    { name: 'Migrate Data', href: '/migrate-data', icon: 'database' },
   ];
 
   const handleLogout = () => {
