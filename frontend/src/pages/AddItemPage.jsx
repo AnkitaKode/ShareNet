@@ -123,7 +123,7 @@ const AddItemPage = () => {
         availableUntil: null,
         latitude: 0,
         longitude: 0,
-        // ownerId: currentUser.id, // uncomment if backend expects owner relation
+        ownerId: currentUser.id || 1, // Use current user ID or default to 1
       };
 
       const response = await endpoints.items.create(payload);

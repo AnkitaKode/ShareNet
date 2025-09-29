@@ -148,7 +148,7 @@ const RequestToBorrowPage = () => {
                 <h2 className="text-lg font-semibold">{item.title}</h2>
                 <p className="text-sm text-gray-300 mb-2 line-clamp-2">{item.description}</p>
                 <div className="flex items-center text-sm text-gray-400">
-                  <span className="mr-4">${item.price || '0'}/day</span>
+                  <span className="mr-4">₹{(item.price || 0) * 8.5}/day</span>
                   <span>{item.location || 'N/A'}</span>
                 </div>
               </div>
