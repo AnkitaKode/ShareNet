@@ -76,7 +76,7 @@ const ChatPage = () => {
             id: Date.now(),
             sender: userId,
             senderName: user.name,
-            text: `Hi there! I'm interested in your item "${
+            text: `Hi there! are you interested in your item "${
               location.state.itemName || ''
             }"`,
             timestamp: new Date()
