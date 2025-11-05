@@ -136,7 +136,7 @@ const EditProfilePage = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="Unavailable"
                 />
               </div>
 
