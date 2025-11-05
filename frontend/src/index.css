@@ -46,7 +46,7 @@ html {
 /* Selection styling */
 ::selection {
   background-color: rgba(96, 165, 250, 0.3);
-  color: #ffffff;
+  color: #686666;
 }
 
 /* Scrollbar styling */
@@ -91,4 +91,14 @@ html {
 
 .animate-float-fast {
   animation: float 4s ease-in-out infinite;
+}
+
+select {
+  background-color: #1e1e1e;  /* dark background */
+  color: white;               /* text color */
+}
+
+select option {
+  background-color: #1e1e1e;
+  color: white;
 }
