@@ -60,7 +60,7 @@ docker-compose down
 ### Frontend (.env files)
 ```env
 VITE_API_URL=http://localhost:8080/api
-VITE_APP_NAME=Pass-It-On
+VITE_APP_NAME=ShareX
 VITE_APP_VERSION=1.0.0
 VITE_API_TIMEOUT=10000
 VITE_API_RETRY_ATTEMPTS=3
