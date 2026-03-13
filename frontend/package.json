@@ -1,16 +1,21 @@
 {
-  "name": "m",
+  "name": "sharenet-frontend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:production": "cross-env NODE_ENV=production vite build",
+    "preview:production": "npm run build:production && vite preview",
+    "deploy:vercel": "npm run build:production && vercel --prod",
+    "deploy:netlify": "npm run build:production && netlify deploy --prod --dir=dist",
+    "analyze": "npm run build:production && npx vite-bundle-analyzer dist/stats.html"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": ["react", "vite", "sharing", "community", "rental"],
+  "author": "ShareNet Team",
+  "license": "MIT",
+  "description": "A community-driven platform to share, borrow, and rent items sustainably",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -35,6 +40,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^7.0.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
