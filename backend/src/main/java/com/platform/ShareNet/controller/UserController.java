@@ -1,22 +1,17 @@
 package com.platform.ShareNet.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.platform.ShareNet.dto.LoginRequest;
+import com.platform.ShareNet.dto.RegisterRequest;
+import com.platform.ShareNet.model.User;
+import com.platform.ShareNet.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.platform.ShareNet.model.User;
-import com.platform.ShareNet.service.UserService;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -41,13 +36,24 @@ public class UserController {
     }
 
     @PostMapping("/auth/register")
-    public ResponseEntity<Map<String, Object>> registerUser(@RequestBody User user) {
+    public ResponseEntity<Map<String, Object>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
+            User user = new User();
+            user.setName(registerRequest.getName());
+            user.setEmail(registerRequest.getEmail());
+            user.setPassword(registerRequest.getPassword());
+            user.setCreditPoints(0.0);
+            user.setLatitude(0.0);
+            user.setLongitude(0.0);
+
             User registeredUser = userService.registerUser(user);
+            String token = userService.loginUser(registeredUser.getEmail(), registerRequest.getPassword());
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "User registered successfully");
             response.put("user", registeredUser);
+            response.put("token", token);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
@@ -58,16 +64,16 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody Map<String, String> loginData) {
+    public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            String email = loginData.get("email");
-            String password = loginData.get("password");
+            String token = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
+            User user = userService.getUserByEmail(loginRequest.getEmail());
 
-            User user = userService.loginUser(email, password);
-            if (user != null) {
+            if (token != null && user != null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
                 response.put("message", "Login successful");
+                response.put("token", token);
                 response.put("user", user);
                 return ResponseEntity.ok(response);
             } else {
@@ -84,8 +90,9 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/buy-credit")
-    public ResponseEntity<Map<String, Object>> buyCredit(@RequestParam Long userId, @RequestParam double amount) {
+    @PostMapping("/users/{userId}/buy-credit")
+    public ResponseEntity<Map<String, Object>> buyCredit(@PathVariable Long userId,
+            @RequestParam double amount) {
         try {
             User user = userService.addCredit(userId, amount);
             Map<String, Object> response = new HashMap<>();
@@ -101,7 +108,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/user/profile")
+    @GetMapping("/users/profile")
     public ResponseEntity<Map<String, Object>> getUserProfile(@RequestParam Long userId) {
         try {
             User user = userService.getUserById(userId);

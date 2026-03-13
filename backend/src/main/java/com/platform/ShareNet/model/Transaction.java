@@ -41,6 +41,6 @@ public class Transaction {
     private double amount;
     private String type;
     @Column(name = "txn_timestamp")
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
 
 }

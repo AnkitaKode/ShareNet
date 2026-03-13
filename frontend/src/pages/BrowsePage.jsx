@@ -142,15 +142,32 @@ const BrowsePage = () => {
     const loadItems = async () => {
       try {
         setLoading(true);
+        console.log('🔄 Fetching items from:', import.meta.env.VITE_API_URL || 'http://localhost:8080/api');
+
         const response = await endpoints.items.getAll();
+        console.log('✅ API Response:', response);
+
         const data = Array.isArray(response?.data) ? response.data : [];
+        console.log('📦 Items received:', data.length);
+
         const sortedItems = data.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         setItems(sortedItems);
-        console.log(`Loaded ${sortedItems.length} items from backend`);
+        console.log(`✅ Loaded ${sortedItems.length} items from backend`);
       } catch (error) {
-        console.error('Error loading items from backend:', error);
+        console.error('❌ Error loading items from backend:', error);
+        console.error('   Error message:', error.message);
+        console.error('   Error config:', error.config);
+        console.error('   Error response:', error.response);
+
+        if (error.response?.status === 401) {
+          toast.error('Authentication required. Please log in.');
+        } else if (error.message === 'Network Error' || !error.response) {
+          toast.error('Cannot connect to server. Is the backend running?');
+        } else {
+          toast.error(`Failed to load items: ${error.message}`);
+        }
+
         setItems([]);
-        toast.error('Failed to load items');
       } finally {
         setLoading(false);
       }

@@ -9,20 +9,23 @@ import java.util.List;
 
 @Service
 public class ItemService {
+
     @Autowired
     public ItemRepository itemRepository;
 
-    public Item saveItem(Item item){
+    public Item saveItem(Item item) {
         return itemRepository.save(item);
     }
-    public List<Item> getAvailableItems(){
-        return itemRepository.findByIsAvailableTrue();
-    }
-    public List<Item> getAllItems(){
-        return itemRepository.findAll();
-    }
-    public Item getItemById(Long id){
-        return itemRepository.findById(id).orElse(null);
+
+    public List<Item> getAvailableItems() {
+        return itemRepository.findByAvailableTrue();
     }
 
+    public List<Item> getAllItems() {
+        return itemRepository.findAll();
+    }
+
+    public Item getItemById(Long id) {
+        return itemRepository.findById(id).orElse(null);
+    }
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StarsBackground from '../components/StarsBackground';
 import { StarIcon } from '@heroicons/react/24/solid';
+import { endpoints } from '../api/api';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -17,59 +18,77 @@ const ProfilePage = () => {
     joinDate: new Date().toISOString(),
     location: '',
     phone: '',
-    isCurrentUser: true, // Flag to check if this is the current user's profile
-    isItemOwner: false, // Flag to check if this user is an item owner
+    isCurrentUser: true,
+    isItemOwner: false,
     recentActivity: []
   });
 
   useEffect(() => {
-    const loadUserProfile = () => {
-      // Get user data from localStorage
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      // In a real app, this would be an API call to get the user's profile
-      // For now, we'll use mock data with the actual user data from localStorage
-      const userProfile = {
-        ...userData,
-        name: userData.name || 'Alex Johnson',
-        email: userData.email || 'alex.johnson@example.com',
-        bio: userData.bio || 'Passionate about sharing and community building',
-        creditPoints: userData.creditPoints || 10, // Use actual credit points from localStorage
-        itemsLent: userData.itemsLent || 0, 
-        itemsBorrowed: userData.itemsBorrowed || 0, 
-        rating: userData.rating || 5.0,
-        totalRatings: userData.totalRatings || 'company',
-        joinDate: userData.joinDate || '2025-05-15T10:30:00Z',
-        location: userData.location || 'India',
-        phone: userData.phone || '+1 (555) 123-4567',
-        isCurrentUser: true,
-        isItemOwner: (userData.itemsLent || 0) > 0,
-        recentActivity: userData.recentActivity || [
-          { id: 1, type: 'community_lend', member: 'Sarah Chen', item: 'DSLR Camera', credits: 25, timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
-          { id: 2, type: 'community_join', member: 'Mike Rodriguez', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-          { id: 3, type: 'community_lend', member: 'Emma Thompson', item: 'Power Drill', credits: 15, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
-          { id: 4, type: 'community_borrow', member: 'James Wilson', item: 'Projector', from: 'Lisa Park', credits: 20, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
-          { id: 5, type: 'community_join', member: 'Priya Sharma', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
-          { id: 6, type: 'community_lend', member: 'David Kim', item: 'Bluetooth Speaker', credits: 10, timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
-          { id: 7, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-          { id: 8, type: 'community_join', member: 'Anna Kowalski', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
-        ]
-      };
-      
-      setUser(userProfile);
+    const loadUserProfile = async () => {
+      try {
+        // Get user data from localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const currentUserId = userData.id;
+
+        // Fetch all items to count items lent by this user
+        let itemsLent = 0;
+        try {
+          const itemsResponse = await endpoints.items.getAll();
+          const allItems = Array.isArray(itemsResponse?.data) ? itemsResponse.data : [];
+          // Count items where owner matches current user
+          itemsLent = allItems.filter(item => item.owner?.id === currentUserId).length;
+          console.log(`Found ${itemsLent} items lent by user ${currentUserId}`);
+        } catch (error) {
+          console.warn('Could not fetch items for profile (backend might not be running):', error.message);
+          // Don't fail - just use 0 items lent
+          itemsLent = 0;
+        }
+
+        // Build the user profile
+        const userProfile = {
+          ...userData,
+          name: userData.name || 'Alex Johnson',
+          email: userData.email || 'alex.johnson@example.com',
+          bio: userData.bio || 'Passionate about sharing and community building',
+          creditPoints: userData.creditPoints || 10,
+          itemsLent: itemsLent,
+          itemsBorrowed: userData.itemsBorrowed || 0,
+          rating: userData.rating || 5.0,
+          totalRatings: userData.totalRatings || 0,
+          joinDate: userData.joinDate || '2025-05-15T10:30:00Z',
+          location: userData.location || 'India',
+          phone: userData.phone || '+1 (555) 123-4567',
+          isCurrentUser: true,
+          isItemOwner: itemsLent > 0,
+          recentActivity: userData.recentActivity || [
+            { id: 1, type: 'community_lend', member: 'Sarah Chen', item: 'DSLR Camera', credits: 25, timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
+            { id: 2, type: 'community_join', member: 'Mike Rodriguez', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+            { id: 3, type: 'community_lend', member: 'Emma Thompson', item: 'Power Drill', credits: 15, timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+            { id: 4, type: 'community_borrow', member: 'James Wilson', item: 'Projector', from: 'Lisa Park', credits: 20, timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
+            { id: 5, type: 'community_join', member: 'Priya Sharma', timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() },
+            { id: 6, type: 'community_lend', member: 'David Kim', item: 'Bluetooth Speaker', credits: 10, timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
+            { id: 7, type: 'update', field: 'Profile', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
+            { id: 8, type: 'community_join', member: 'Anna Kowalski', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
+          ]
+        };
+
+        setUser(userProfile);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
     };
 
     // Load profile initially
     loadUserProfile();
 
-    // Listen for storage changes (when credits are updated from other tabs/components)
+    // Listen for storage changes
     const handleStorageChange = (e) => {
       if (e.key === 'user') {
         loadUserProfile();
       }
     };
 
-    // Listen for custom events (when credits are updated in the same tab)
+    // Listen for custom events
     const handleCreditUpdate = () => {
       loadUserProfile();
     };

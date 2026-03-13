@@ -5,6 +5,7 @@ import com.platform.ShareNet.model.User;
 import com.platform.ShareNet.service.ItemService;
 import com.platform.ShareNet.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,16 +15,17 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/items")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5173" })
 public class ItemController {
+
     @Autowired
     private ItemService itemService;
-    
+
     @Autowired
     private UserService userService;
 
-    @GetMapping("/available")
-    public ResponseEntity<List<Item>> getAvailableItems(){
+    @GetMapping
+    public ResponseEntity<List<Item>> getAllItems() {
         try {
             List<Item> items = itemService.getAllItems();
             return ResponseEntity.ok(items);
@@ -31,78 +33,64 @@ public class ItemController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Item> getItemById(@PathVariable Long id){
+
+    @GetMapping("/available")
+    public ResponseEntity<List<Item>> getAvailableItems() {
         try {
-            Item item = itemService.getItemById(id);
-            if (item != null) {
-                return ResponseEntity.ok(item);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            List<Item> items = itemService.getAllItems();
+            return ResponseEntity.ok(items);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, Object>> uploadItem(@RequestBody Map<String, Object> itemData){
+    public ResponseEntity<Map<String, Object>> uploadItem(@RequestBody Map<String, Object> itemData) {
         try {
-            // Create new Item object
             Item item = new Item();
             item.setName((String) itemData.get("name"));
             item.setDescription((String) itemData.get("description"));
-            
-            // Handle pricePerDay - could be Integer or Double
+
             Object priceObj = itemData.get("pricePerDay");
-            if (priceObj instanceof Number) {
-                item.setPricePerDay(((Number) priceObj).doubleValue());
-            } else {
-                item.setPricePerDay(0.0);
-            }
-            
+            item.setPricePerDay(priceObj instanceof Number ? ((Number) priceObj).doubleValue() : 0.0);
+
             item.setImageUrl((String) itemData.get("imageUrl"));
-            item.setAvailable((Boolean) itemData.getOrDefault("isAvailable", true));
+
+            Object availableObj = itemData.get("isAvailable");
+            item.setAvailable(availableObj instanceof Boolean ? (Boolean) availableObj : true);
+
             item.setAvailableUntil(null);
-            
-            // Handle latitude and longitude
+
             Object latObj = itemData.get("latitude");
             Object lonObj = itemData.get("longitude");
             item.setLatitude(latObj instanceof Number ? ((Number) latObj).doubleValue() : 0.0);
             item.setLongitude(lonObj instanceof Number ? ((Number) lonObj).doubleValue() : 0.0);
-            
-            // Handle owner - for now, create a default owner or use ID 1
-            // In a real app, you'd get this from authentication token
+
             Object ownerIdObj = itemData.get("ownerId");
             if (ownerIdObj instanceof Number) {
                 Long ownerId = ((Number) ownerIdObj).longValue();
                 User owner = userService.getUserById(ownerId);
-                if (owner != null) {
-                    item.setOwner(owner);
-                } else {
-                    // Create a default owner if not found
-                    User defaultOwner = new User();
-                    defaultOwner.setId(1L);
-                    defaultOwner.setName("Default User");
-                    defaultOwner.setEmail("default@sharenet.com");
-                    item.setOwner(defaultOwner);
+                if (owner == null) {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("success", false);
+                    error.put("message", "Owner with id " + ownerId + " not found");
+                    return ResponseEntity.badRequest().body(error);
                 }
+                item.setOwner(owner);
             } else {
-                // Create a default owner
-                User defaultOwner = new User();
-                defaultOwner.setId(1L);
-                defaultOwner.setName("Default User");
-                defaultOwner.setEmail("default@sharenet.com");
-                item.setOwner(defaultOwner);
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "ownerId is required");
+                return ResponseEntity.badRequest().body(error);
             }
-            
+
             Item savedItem = itemService.saveItem(item);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Item uploaded successfully");
             response.put("item", savedItem);
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
@@ -111,4 +99,3 @@ public class ItemController {
         }
     }
 }
-

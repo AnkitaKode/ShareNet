@@ -39,18 +39,19 @@ const SignUpPage = () => {
       const response = await endpoints.auth.register({ 
         name: formData.name,
         email: formData.email,
-        password: formData.password,
-        creditPoints: 0.0, 
-        latitude: 0.0, 
-        longitude: 0.0 
+        password: formData.password
       });
       
       if (response.data.success) {
-        // Generate a proper auth token (in real app, this would come from backend)
-        const authToken = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/dashboard');
+        // Store JWT token from backend (if returned) or redirect to login
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          navigate('/dashboard');
+        } else {
+          // Redirect to login if no token returned
+          navigate('/login');
+        }
       } else {
         setError(response.data.message || 'Registration failed');
       }

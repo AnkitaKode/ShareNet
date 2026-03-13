@@ -1,8 +1,9 @@
+// frontend/src/services/api.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// ✅ Vite uses import.meta.env, NOT process.env
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Get item by ID
 export const getItemById = async (itemId) => {
   try {
     const response = await axios.get(`${API_URL}/items/${itemId}`);
@@ -13,7 +14,6 @@ export const getItemById = async (itemId) => {
   }
 };
 
-// Request to borrow an item
 export const requestToBorrow = async (requestData) => {
   try {
     const response = await axios.post(`${API_URL}/requests`, requestData, {
@@ -22,12 +22,11 @@ export const requestToBorrow = async (requestData) => {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    
-    // Send notification to the item owner
+
     await sendNotification({
       userId: requestData.ownerId,
       type: 'BORROW_REQUEST',
-      message: `New borrow request for your item`,
+      message: 'New borrow request for your item',
       data: {
         itemId: requestData.itemId,
         requesterId: requestData.borrowerId,
@@ -35,7 +34,7 @@ export const requestToBorrow = async (requestData) => {
         endDate: requestData.endDate
       }
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('Error creating borrow request:', error);
@@ -43,7 +42,6 @@ export const requestToBorrow = async (requestData) => {
   }
 };
 
-// Send notification to user
 const sendNotification = async (notificationData) => {
   try {
     await axios.post(`${API_URL}/notifications`, notificationData, {
@@ -54,6 +52,5 @@ const sendNotification = async (notificationData) => {
     });
   } catch (error) {
     console.error('Error sending notification:', error);
-    // Don't throw error for notification failures
   }
 };

@@ -20,9 +20,9 @@ const LoginPage = () => {
     const password = formData.get('password');
 
     // Clean up any existing demo users
-    const existingToken = localStorage.getItem('authToken');
+    const existingToken = localStorage.getItem('token');
     if (existingToken === 'demo-auth-token') {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
 
@@ -30,9 +30,8 @@ const LoginPage = () => {
       const response = await endpoints.auth.login({ email, password });
       
       if (response.data.success) {
-        // Generate a proper auth token (in real app, this would come from backend)
-        const authToken = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('authToken', authToken);
+        // Store JWT token from backend
+        localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
       } else {

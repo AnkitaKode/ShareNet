@@ -10,13 +10,13 @@ const ProtectedRoute = ({ children }) => {
     const checkAuth = async () => {
       try {
         // Clean up any existing demo users/tokens
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
         
         // Remove demo authentication data
         if (token === 'demo-auth-token' || 
             (user && JSON.parse(user).email === 'demo@sharenet.com')) {
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('token');
           localStorage.removeItem('user');
           localStorage.removeItem('currentUser'); // Also clean up currentUser if it exists
           setIsAuthenticated(false);

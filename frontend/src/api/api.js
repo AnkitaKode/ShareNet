@@ -1,69 +1,105 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
-  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Add request retry logic
-let retryCount = 0;
-const maxRetries = parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS) || 3;
+// Helper function to get headers with optional token
+const getHeaders = (includeAuth = false) => {
+  const headers = {
+    'Content-Type': 'application/json'
+  };
 
-// Bind handler once to properly remove later
-const handleRequest = (config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (includeAuth) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
-  return config;
+
+  return headers;
 };
-
-const handleRequestError = (error) => Promise.reject(error);
-
-const handleResponse = (response) => response;
-
-const handleResponseError = (error) => {
-  if (error.response && error.response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  }
-  return Promise.reject(error);
-};
-
-api.interceptors.request.use(handleRequest, handleRequestError);
-api.interceptors.response.use(handleResponse, handleResponseError);
 
 export const endpoints = {
   auth: {
-    login: (data) => api.post('/auth/login', data),
-    register: (data) => api.post('/auth/register', data),
-    logout: () => api.post('/auth/logout'),
+    login: async (credentials) => {
+      return axios.post(`${API_URL}/auth/login`, credentials, {
+        headers: getHeaders()
+      });
+    },
+    register: async (data) => {
+      return axios.post(`${API_URL}/auth/register`, data, {
+        headers: getHeaders()
+      });
+    }
   },
   items: {
-    getAll: () => api.get('/items/available'),
-    getById: (id) => api.get(`/items/${id}`),
-    create: (data) => api.post('/items/upload', data),
-    update: (id, data) => api.put(`/items/${id}`, data),
-    delete: (id) => api.delete(`/items/${id}`),
-  },
-  user: {
-    getProfile: (userId) => api.get(`/user/profile?userId=${userId}`),
-    updateProfile: (data) => api.put('/user/profile', data),
-    buyCredit: (userId, amount) => api.post(`/users/buy-credit?userId=${userId}&amount=${amount}`),
-    getUser: (id) => api.get(`/users/${id}`),
-  },
-  transactions: {
-    getUserTransactions: (userId) => api.get(`/transactions/user/${userId}`),
-    create: (data) => api.post('/transactions/create', data),
-  },
-  chats: {
-    getChatsBetweenUsers: (user1, user2) => api.get(`/chats/${user1}/${user2}`),
-    sendMessage: (data) => api.post('/chats/send', data),
-  },
+    create: async (itemData) => {
+      return axios.post(`${API_URL}/items/upload`, itemData, {
+        headers: getHeaders(true)
+      });
+    },
+    getAll: async () => {
+      try {
+        const response = await axios.get(`${API_URL}/items/available`, {
+          headers: getHeaders(false) // Don't require token for browsing
+        });
+        console.log('Items fetched successfully:', response.data);
+        return response;
+      } catch (error) {
+        console.error('Error fetching items:', error.message);
+        throw error;
+      }
+    },
+    getById: async (itemId) => {
+      return axios.get(`${API_URL}/items/${itemId}`, {
+        headers: getHeaders(false)
+      });
+    }
+  }
 };
 
-export default api;
+export const getItemById = async (itemId) => {
+  try {
+    const response = await axios.get(`${API_URL}/items/${itemId}`, {
+      headers: getHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching item:', error);
+    throw new Error('Failed to fetch item details');
+  }
+};
+
+export const requestToBorrow = async (requestData) => {
+  try {
+    const response = await axios.post(`${API_URL}/requests`, requestData, {
+      headers: getHeaders(true)
+    });
+
+    await sendNotification({
+      userId: requestData.ownerId,
+      type: 'BORROW_REQUEST',
+      message: 'New borrow request for your item',
+      data: {
+        itemId: requestData.itemId,
+        requesterId: requestData.borrowerId,
+        startDate: requestData.startDate,
+        endDate: requestData.endDate
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error creating borrow request:', error);
+    throw new Error(error.response?.data?.message || 'Failed to send borrow request');
+  }
+};
+
+const sendNotification = async (notificationData) => {
+  try {
+    await axios.post(`${API_URL}/notifications`, notificationData, {
+      headers: getHeaders(true)
+    });
+  } catch (error) {
+    console.error('Error sending notification:', error);
+  }
+};
