@@ -4,6 +4,8 @@
 .env.test
 .env.production
 .env.staging
+.env
+
 
 # IDE and Editor files
 .vscode/
@@ -12,6 +14,7 @@
 *.swo
 *~
 
+node_modules/
 # OS generated files
 .DS_Store
 .DS_Store?
