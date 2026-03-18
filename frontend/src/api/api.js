@@ -1,8 +1,6 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;
-const RETRY_ATTEMPTS = import.meta.env.VITE_API_RETRY_ATTEMPTS || 3;
 
 // Helper function to get headers with optional token
 const getHeaders = (includeAuth = false) => {
@@ -20,76 +18,30 @@ const getHeaders = (includeAuth = false) => {
   return headers;
 };
 
-// Create axios instance with default configuration
-const apiClient = axios.create({
-  baseURL: API_URL,
-  timeout: API_TIMEOUT,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Request interceptor to add auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Handle token expiration
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
-
-    // Retry logic for network errors
-    if (!error.response && originalRequest._retryCount < RETRY_ATTEMPTS) {
-      originalRequest._retryCount = originalRequest._retryCount || 0;
-      originalRequest._retryCount++;
-      
-      // Exponential backoff
-      const delay = Math.pow(2, originalRequest._retryCount) * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      return apiClient(originalRequest);
-    }
-
-    return Promise.reject(error);
-  }
-);
-
 export const endpoints = {
   auth: {
     login: async (credentials) => {
-      return apiClient.post('/auth/login', credentials);
+      return axios.post(`${API_URL}/auth/login`, credentials, {
+        headers: getHeaders()
+      });
     },
     register: async (data) => {
-      return apiClient.post('/auth/register', data);
+      return axios.post(`${API_URL}/auth/register`, data, {
+        headers: getHeaders()
+      });
     }
   },
   items: {
     create: async (itemData) => {
-      return apiClient.post('/items/upload', itemData);
+      return axios.post(`${API_URL}/items/upload`, itemData, {
+        headers: getHeaders(true)
+      });
     },
     getAll: async () => {
       try {
-        const response = await apiClient.get('/items/available');
+        const response = await axios.get(`${API_URL}/items/available`, {
+          headers: getHeaders(false) // Don't require token for browsing
+        });
         console.log('Items fetched successfully:', response.data);
         return response;
       } catch (error) {
@@ -98,14 +50,18 @@ export const endpoints = {
       }
     },
     getById: async (itemId) => {
-      return apiClient.get(`/items/${itemId}`);
+      return axios.get(`${API_URL}/items/${itemId}`, {
+        headers: getHeaders(false)
+      });
     }
   }
 };
 
 export const getItemById = async (itemId) => {
   try {
-    const response = await apiClient.get(`/items/${itemId}`);
+    const response = await axios.get(`${API_URL}/items/${itemId}`, {
+      headers: getHeaders()
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching item:', error);
@@ -115,7 +71,9 @@ export const getItemById = async (itemId) => {
 
 export const requestToBorrow = async (requestData) => {
   try {
-    const response = await apiClient.post('/requests', requestData);
+    const response = await axios.post(`${API_URL}/requests`, requestData, {
+      headers: getHeaders(true)
+    });
 
     await sendNotification({
       userId: requestData.ownerId,
@@ -138,7 +96,9 @@ export const requestToBorrow = async (requestData) => {
 
 const sendNotification = async (notificationData) => {
   try {
-    await apiClient.post('/notifications', notificationData);
+    await axios.post(`${API_URL}/notifications`, notificationData, {
+      headers: getHeaders(true)
+    });
   } catch (error) {
     console.error('Error sending notification:', error);
   }
